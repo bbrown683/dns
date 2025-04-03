@@ -1,0 +1,3 @@
+[workspace]
+members = [ "api", "dns", "firewall", "gateway", "intrusion", "proxy", "vpn", "web" ]
+resolver = "3"
