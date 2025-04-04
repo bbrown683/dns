@@ -1,90 +1,55 @@
+use bitfields::bitfield;
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;
 
-#[derive(Builder, Clone, Debug)]
-pub struct DnsHeaderFlags {
-    qr: bool,
+#[bitfield(u16, to_builder=true)]
+#[derive(Clone)]
+pub struct HeaderFlags {
+    query_response: bool,
+    #[bits(4)]
     opcode: u8,
-    aa: bool,
-    tc: bool,
-    rd: bool,
-    ra: bool,
-    z: u8,
-    rcode: u8,
-}
-
-impl From<u16> for DnsHeaderFlags {
-    fn from(value : u16) -> Self {
-        DnsHeaderFlags {
-            qr: (value & 0x8000) != 0,
-            opcode: ((value & 0x7800) >> 11) as u8,
-            aa: (value & 0x0400) != 0,
-            tc: (value & 0x0200) != 0,
-            rd: (value & 0x0100) != 0,
-            ra: (value & 0x0080) != 0,
-            z: ((value & 0x0070) >> 4) as u8,
-            rcode: (value & 0x000F) as u8,
-        }
-    }
-}
-
-impl Into<u16> for DnsHeaderFlags {
-    fn into(self) -> u16 {
-        let mut value = 0;
-        if self.qr {
-            value |= 0x8000;
-        }
-        value |= (self.opcode as u16) << 11;
-        if self.aa {
-            value |= 0x0400;
-        }
-        if self.tc {
-            value |= 0x0200;
-        }
-        if self.rd {
-            value |= 0x0100;
-        }
-        if self.ra {
-            value |= 0x0080;
-        }
-        value |= (self.z as u16) << 4;
-        value |= self.rcode as u16;
-        value
-    }
+    authoritative_answer: bool,
+    truncation: bool,
+    recursion_desired: bool,
+    recursion_available: bool,
+    #[bits(3)]
+    reserved: u8,
+    #[bits(4)]
+    response_code: u8,
 }
 
 #[derive(Builder, Clone, Debug)]
-pub struct DnsHeaderSection {
+pub struct HeaderSection {
     id: u16,
-    flags: DnsHeaderFlags,
-    pub qdcount: u16,
-    pub ancount: u16,
-    pub nscount: u16,
-    pub arcount: u16,
+    flags: HeaderFlags,
+    pub questions: u16,
+    pub answers: u16,
+    pub authorities: u16,
+    pub additional_records: u16,
 }
 
-impl From<&mut BytesMut> for DnsHeaderSection {
+impl From<&mut BytesMut> for HeaderSection {
     fn from(value: &mut BytesMut) -> Self {
-        DnsHeaderSection {
+        HeaderSection {
             id: value.get_u16(),
-            flags: DnsHeaderFlags::from(value.get_u16()),
-            qdcount: value.get_u16(),
-            ancount: value.get_u16(),
-            nscount: value.get_u16(),
-            arcount: value.get_u16(),
+            flags: HeaderFlags::from(value.get_u16()),
+            questions: value.get_u16(),
+            answers: value.get_u16(),
+            authorities: value.get_u16(),
+            additional_records: value.get_u16(),
         }
     }
 }
 
-impl From<DnsHeaderSection> for BytesMut {
-    fn from(value: DnsHeaderSection) -> Self {
+impl From<HeaderSection> for BytesMut {
+    fn from(value: HeaderSection) -> Self {
         let mut bytes = BytesMut::new();
         bytes.put_u16(value.id);
         bytes.put_u16(value.flags.into());
-        bytes.put_u16(value.qdcount);
-        bytes.put_u16(value.ancount);
-        bytes.put_u16(value.nscount);
-        bytes.put_u16(value.arcount);
+        bytes.put_u16(value.questions);
+        bytes.put_u16(value.answers);
+        bytes.put_u16(value.authorities);
+        bytes.put_u16(value.additional_records);
         bytes
     }
 }

@@ -1,80 +1,122 @@
 #[derive(Debug, Copy, Clone)]
-pub enum DnsType {
-    A = 1,
-    NS = 2,
-    MD = 3,
-    MF = 4,
-    CNAME = 5,
-    SOA = 6,
-    MB = 7,
-    MG = 8,
-    MR = 9,
-    NULL = 10,
-    WKS = 11,
-    PTR = 12,
-    HINFO = 13,
-    MINFO = 14,
-    MX = 15,
-    TXT = 16,
-    OPT = 41,
+pub enum Type {
+    HostAddressV4 = 1,
+    NameServer = 2,
+    MailDestination = 3,
+    MailForwarder = 4,
+    CanonicalName = 5,
+    StartOfAuthority = 6,
+    Mailbox = 7,
+    MailGroup = 8,
+    MailRename = 9,
+    Null = 10,
+    WellKnownService = 11,
+    Pointer = 12,
+    HostInfo = 13,
+    MailboxInfo = 14,
+    MailboxExchange = 15,
+    Text = 16,
+    HostAddressV6 = 28,
+    Option = 41,
+    HTTPS = 65,
 }
 
-impl From<u16> for DnsType {
+impl From<u16> for Type {
     fn from(value: u16) -> Self {
         match value {
-            1 => DnsType::A,
-            2 => DnsType::NS,
-            3 => DnsType::MD,
-            4 => DnsType::MF,
-            5 => DnsType::CNAME,
-            6 => DnsType::SOA,
-            7 => DnsType::MB,
-            8 => DnsType::MG,
-            9 => DnsType::MR,
-            10 => DnsType::NULL,
-            11 => DnsType::WKS,
-            12 => DnsType::PTR,
-            13 => DnsType::HINFO,
-            14 => DnsType::MINFO,
-            15 => DnsType::MX,
-            16 => DnsType::TXT,
-            41 => DnsType::OPT,
-            _ => panic!("Unknown DNS QTYPE"),
+            1 => Type::HostAddressV4,
+            2 => Type::NameServer,
+            3 => Type::MailDestination,
+            4 => Type::MailForwarder,
+            5 => Type::CanonicalName,
+            6 => Type::StartOfAuthority,
+            7 => Type::Mailbox,
+            8 => Type::MailGroup,
+            9 => Type::MailRename,
+            10 => Type::Null,
+            11 => Type::WellKnownService,
+            12 => Type::Pointer,
+            13 => Type::HostInfo,
+            14 => Type::MailboxInfo,
+            15 => Type::MailboxExchange,
+            16 => Type::Text,
+            28 => Type::HostAddressV6,
+            41 => Type::Option,
+            65 => Type::HTTPS,
+            _ => panic!("Unknown DNS Type {:?}", value),
+        }
+    }
+}
+
+impl From<Type> for &str {
+    fn from(value: Type) -> Self {
+        match value {
+            Type::HostAddressV4 => "A",
+            Type::NameServer => "NS",
+            Type::MailDestination => "MD",
+            Type::MailForwarder => "MF",
+            Type::CanonicalName => "CNAME",
+            Type::StartOfAuthority => "SOA",
+            Type::Mailbox => "MB",
+            Type::MailGroup => "MG",
+            Type::MailRename => "MR",
+            Type::Null => "NULL",
+            Type::WellKnownService => "WKS",
+            Type::Pointer => "PTR",
+            Type::HostInfo => "HINFO",
+            Type::MailboxInfo => "MINFO",
+            Type::MailboxExchange => "MX",
+            Type::Text => "TXT",
+            Type::HostAddressV6 => "AAAA",
+            Type::Option => "OPT",
+            Type::HTTPS => "HTTPS",
         }
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 #[repr(u16)]
-pub enum DnsQType {
-    TYPE(DnsType),
-    AXFR = 252,
-    MAILB = 253,
-    MAILA = 254,
-    ANY = 255,
+pub enum QueryType {
+    Type(Type),
+    TransferOfZone = 252,
+    Mailbox = 253,
+    MailAgent = 254,
+    Any = 255,
 }
 
-impl From<u16> for DnsQType {
+impl From<u16> for QueryType {
     fn from(value: u16) -> Self {
         match value {
-            1..16 | 42 => DnsQType::TYPE(DnsType::from(value)),
-            252 => DnsQType::AXFR,
-            253 => DnsQType::MAILB,
-            254 => DnsQType::MAILA,
-            255 => DnsQType::ANY,
-            _ => panic!("Unknown DNS QTYPE"),
+            ..252 => QueryType::Type(Type::from(value)),
+            252 => QueryType::TransferOfZone,
+            253 => QueryType::Mailbox,
+            254 => QueryType::MailAgent,
+            255 => QueryType::Any,
+            _ => panic!("Unknown DNS Query Type {:?}", value),
         }
     }
 }
 
-impl From<DnsQType> for u16 {
-    fn from(value: DnsQType) -> Self {
+impl From<QueryType> for u16 {
+    fn from(value: QueryType) -> Self {
         match value {
-            DnsQType::TYPE(t) => t as u16,
-            DnsQType::AXFR => 252,
-            DnsQType::MAILB => 253,
-            DnsQType::MAILA => 254,
-            DnsQType::ANY => 255,
+            QueryType::Type(t) => t as u16,
+            QueryType::TransferOfZone => 252,
+            QueryType::Mailbox => 253,
+            QueryType::MailAgent => 254,
+            QueryType::Any => 255,
+        }
+    }
+}
+
+impl From<QueryType> for &str {
+    fn from(value: QueryType) -> Self {
+        match value {
+            QueryType::Type(t) => t.into(),
+            QueryType::TransferOfZone => "AXFR",
+            QueryType::Mailbox => "MAILB",
+            QueryType::MailAgent => "MAILA",
+            QueryType::Any => "*",
         }
     }
 }
