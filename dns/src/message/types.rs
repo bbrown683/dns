@@ -66,3 +66,15 @@ impl From<u16> for DnsQType {
         }
     }
 }
+
+impl From<DnsQType> for u16 {
+    fn from(value: DnsQType) -> Self {
+        match value {
+            DnsQType::TYPE(t) => t as u16,
+            DnsQType::AXFR => 252,
+            DnsQType::MAILB => 253,
+            DnsQType::MAILA => 254,
+            DnsQType::ANY => 255,
+        }
+    }
+}

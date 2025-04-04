@@ -1,18 +1,14 @@
 mod message;
-mod resource_record;
-mod traits;
-mod resource_data;
-mod question;
-mod header;
-mod types;
-mod classes;
 
 use std::fmt::Debug;
 use tokio::net::UdpSocket;
 use std::io;
+use std::io::BufRead;
 use bytes::{Buf, BytesMut};
+use derive_builder::Builder;
 
-use message::DnsMessage;
+use crate::message::{DnsMessage, DnsMessageBuilder};
+use crate::message::header::DnsHeaderSectionBuilder;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -21,15 +17,10 @@ async fn main() -> io::Result<()> {
     loop {
         let mut recv_buf = BytesMut::zeroed(512);
         let (bytes, from) = sock.recv_from(&mut recv_buf).await?;
+        let mut request_buf = recv_buf.clone();
         let request = DnsMessage::from(&mut recv_buf);
-        println!("===============================================");
+        //sock.send_to(&request_buf[..bytes], from).await?;
         println!("Received {} bytes from {}", bytes, from);
-        println!("Header: {:?}", request.header);
-        println!("Question: {:?}", request.question);
-        println!("Answers: {:?}", request.answer);
-        println!("Authority: {:?}", request.authority);
         println!("Additional: {:?}", request.additional);
-        println!("===============================================");
-        //sock.send_to(&recv_buf, from).await?;
     }
 }

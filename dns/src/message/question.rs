@@ -1,9 +1,10 @@
-use bytes::{Buf, BytesMut};
-use crate::classes::DnsQClass;
-use crate::traits::RepeatFrom;
-use crate::types::DnsQType;
+use bytes::{Buf, BufMut, BytesMut};
+use derive_builder::Builder;
+use crate::message::classes::DnsQClass;
+use crate::message::traits::RepeatFrom;
+use crate::message::types::DnsQType;
 
-#[derive(Debug)]
+#[derive(Builder, Clone, Debug)]
 pub struct DnsQuestionSection {
     qname: Vec<String>,
     qtype: DnsQType,
@@ -41,5 +42,19 @@ impl RepeatFrom<u16, &mut BytesMut> for DnsQuestionSection {
             vec.push(DnsQuestionSection::from(&mut *value));
         }
         vec
+    }
+}
+
+impl From<DnsQuestionSection> for BytesMut {
+    fn from(value: DnsQuestionSection) -> Self {
+        let mut bytes = BytesMut::new();
+        for label in value.qname {
+            bytes.put_u8(label.len() as u8);
+            bytes.put(label.as_bytes());
+        }
+        bytes.put_u8(0);
+        bytes.put_u16(value.qtype.into());
+        bytes.put_u16(value.qclass.into());
+        bytes
     }
 }

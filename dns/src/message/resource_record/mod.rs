@@ -1,10 +1,14 @@
-use bytes::{Buf, BytesMut};
-use crate::classes::DnsClass;
-use crate::resource_data::DnsRData;
-use crate::traits::RepeatFrom;
-use crate::types::DnsType;
+mod opt;
 
-#[derive(Debug)]
+use bytes::{Buf, BytesMut};
+use derive_builder::Builder;
+use crate::message::classes::DnsClass;
+use crate::message::resource_data::DnsRData;
+use crate::message::traits::RepeatFrom;
+use crate::message::types::DnsType;
+use crate::message::resource_record::opt::DnsOptResourceRecord;
+
+#[derive(Builder, Clone, Debug)]
 pub struct DnsResourceRecord {
     name: String,
     r#type: DnsType,
@@ -31,37 +35,7 @@ impl DnsResourceRecord {
     }
 }
 
-// See: https://www.rfc-editor.org/rfc/rfc6891 OPT EDNS
-#[derive(Debug)]
-pub struct DnsOptResourceRecord {
-    name: String,
-    r#type: DnsType,
-    class: u16,
-    ttl: u32,
-    rdlength: u16,
-    rdata : DnsRData
-}
-
-impl From<&mut BytesMut> for DnsOptResourceRecord {
-    fn from(value: &mut BytesMut) -> Self {
-        let name = String::from("0");
-        let r#type = DnsType::OPT;
-        let class = value.get_u16();
-        let ttl = value.get_u32();
-        let rdlength = value.get_u16();
-        let rdata : DnsRData = DnsRData::from(value, &r#type);
-        DnsOptResourceRecord {
-            name,
-            r#type,
-            class,
-            ttl,
-            rdlength,
-            rdata,
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum DnsResourceRecordExtension {
     RR(DnsResourceRecord),
     OPT(DnsOptResourceRecord),

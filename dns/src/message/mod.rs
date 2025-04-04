@@ -1,29 +1,26 @@
 // https://en.wikipedia.org/wiki/List_of_DNS_record_types
 // https://rfc-annotations.research.icann.org/
+pub mod classes;
+pub mod header;
+pub mod question;
+pub mod resource_record;
+pub mod resource_data;
+pub mod types;
+pub mod traits;
 
-use bytes::{Buf, BufMut, Bytes, BytesMut};
-use crate::header::DnsHeaderSection;
-use crate::question::DnsQuestionSection;
-use crate::resource_record::DnsResourceRecordExtension;
-use crate::traits::RepeatFrom;
-
-#[derive(Debug)]
-pub struct DnsMessageError {
-    message: String,
-}
-
-impl DnsMessageError {
-    fn new(message: &str) -> Self {
-        DnsMessageError {
-            message: message.to_string(),
-        }
-    }
-}
+use bytes::{Buf, BufMut, BytesMut};
+use derive_builder::Builder;
+use header::DnsHeaderSection;
+use question::DnsQuestionSection;
+use resource_record::DnsResourceRecordExtension;
+use traits::RepeatFrom;
+use std::default::Default;
+use crate::message::header::{DnsHeaderFlags, DnsHeaderSectionBuilder};
 
 // https://www.rfc-editor.org/rfc/rfc1035 DNS Specification
 // https://www.rfc-editor.org/rfc/rfc8499 DNS Terminology
 // https://www.rfc-editor.org/rfc/rfc9499.html DNS Terminology
-#[derive(Debug)]
+#[derive(Builder, Clone, Debug)]
 pub struct DnsMessage {
     pub header: DnsHeaderSection,
     pub question: Vec<DnsQuestionSection>,
@@ -49,9 +46,10 @@ impl From<&mut BytesMut> for DnsMessage {
     }
 }
 
-impl Into<BytesMut> for DnsMessage {
-    fn into(self) -> BytesMut {
-        let mut buf = BytesMut::zeroed(512);
-        buf
+impl From<DnsMessage> for BytesMut {
+    fn from(value: DnsMessage) -> Self {
+        let mut bytes = BytesMut::new();
+        bytes.put(BytesMut::from(value.header));
+        bytes
     }
 }

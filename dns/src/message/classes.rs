@@ -1,4 +1,4 @@
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 #[repr(u16)]
 pub enum DnsClass {
     IN = 1,
@@ -19,7 +19,7 @@ impl From<u16> for DnsClass {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[repr(u16)]
 pub enum DnsQClass {
     ANY = 255,
@@ -32,6 +32,15 @@ impl From<u16> for DnsQClass {
             1..4 => DnsQClass::CLASS(DnsClass::from(value)),
             255 => DnsQClass::ANY,
             _ => panic!("Unknown DNS QCLASS"),
+        }
+    }
+}
+
+impl From<DnsQClass> for u16 {
+    fn from(value: DnsQClass) -> Self {
+        match value {
+            DnsQClass::ANY => 255,
+            DnsQClass::CLASS(class) => class as u16,
         }
     }
 }

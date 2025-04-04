@@ -1,7 +1,7 @@
 use bytes::{Buf, BufMut, BytesMut};
-use crate::message::DnsMessageError;
+use derive_builder::Builder;
 
-#[derive(Debug)]
+#[derive(Builder, Clone, Debug)]
 pub struct DnsHeaderFlags {
     qr: bool,
     opcode: u8,
@@ -13,10 +13,9 @@ pub struct DnsHeaderFlags {
     rcode: u8,
 }
 
-impl TryFrom<u16> for DnsHeaderFlags {
-    type Error = DnsMessageError;
-    fn try_from(value : u16) -> Result<Self, DnsMessageError> {
-        Ok(DnsHeaderFlags {
+impl From<u16> for DnsHeaderFlags {
+    fn from(value : u16) -> Self {
+        DnsHeaderFlags {
             qr: (value & 0x8000) != 0,
             opcode: ((value & 0x7800) >> 11) as u8,
             aa: (value & 0x0400) != 0,
@@ -25,7 +24,7 @@ impl TryFrom<u16> for DnsHeaderFlags {
             ra: (value & 0x0080) != 0,
             z: ((value & 0x0070) >> 4) as u8,
             rcode: (value & 0x000F) as u8,
-        })
+        }
     }
 }
 
@@ -54,7 +53,7 @@ impl Into<u16> for DnsHeaderFlags {
     }
 }
 
-#[derive(Debug)]
+#[derive(Builder, Clone, Debug)]
 pub struct DnsHeaderSection {
     id: u16,
     flags: DnsHeaderFlags,
@@ -68,7 +67,7 @@ impl From<&mut BytesMut> for DnsHeaderSection {
     fn from(value: &mut BytesMut) -> Self {
         DnsHeaderSection {
             id: value.get_u16(),
-            flags: DnsHeaderFlags::try_from(value.get_u16()).expect("invalid flags!"),
+            flags: DnsHeaderFlags::from(value.get_u16()),
             qdcount: value.get_u16(),
             ancount: value.get_u16(),
             nscount: value.get_u16(),
@@ -77,15 +76,15 @@ impl From<&mut BytesMut> for DnsHeaderSection {
     }
 }
 
-impl Into<BytesMut> for DnsHeaderSection {
-    fn into(self) -> BytesMut {
-        let mut buf = BytesMut::with_capacity(12);
-        buf.put_u16(self.id);
-        buf.put_u16(self.flags.into());
-        buf.put_u16(self.qdcount);
-        buf.put_u16(self.ancount);
-        buf.put_u16(self.nscount);
-        buf.put_u16(self.arcount);
-        buf
+impl From<DnsHeaderSection> for BytesMut {
+    fn from(value: DnsHeaderSection) -> Self {
+        let mut bytes = BytesMut::new();
+        bytes.put_u16(value.id);
+        bytes.put_u16(value.flags.into());
+        bytes.put_u16(value.qdcount);
+        bytes.put_u16(value.ancount);
+        bytes.put_u16(value.nscount);
+        bytes.put_u16(value.arcount);
+        bytes
     }
 }
