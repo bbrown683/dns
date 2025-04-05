@@ -1,4 +1,4 @@
-mod option;
+pub mod option;
 
 use std::time::Duration;
 use bytes::{Buf, BytesMut};
@@ -36,6 +36,12 @@ impl ResourceRecord {
     }
 }
 
+impl From<ResourceRecord> for BytesMut {
+    fn from(value: ResourceRecord) -> Self {
+        todo!()
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum ResourceRecordType {
     ResourceRecord(ResourceRecord),
@@ -62,6 +68,16 @@ impl From<&mut BytesMut> for ResourceRecordType {
             ResourceRecordType::OptionResourceRecord(OptionResourceRecord::from(&mut *value))
         } else {
             ResourceRecordType::ResourceRecord(ResourceRecord::from(&mut *value, name, r#type))
+        }
+    }
+}
+
+impl From<ResourceRecordType> for BytesMut {
+    fn from(value: ResourceRecordType) -> Self {
+        match value {
+            // ResourceRecordType::ResourceRecord(resource_record) => ResourceRecord::from(resource_record),
+            ResourceRecordType::OptionResourceRecord(option_resource_record) => OptionResourceRecord::from(option_resource_record).into(),
+            _ => todo!()
         }
     }
 }

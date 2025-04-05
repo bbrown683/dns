@@ -9,6 +9,16 @@ pub struct OptionResourceRecordCode {
     version : i8
 }
 
+impl OptionResourceRecordCode {
+    pub fn upper_byte(&self) -> i8 {
+        self.upper_byte
+    }
+
+    pub fn version(&self) -> i8 {
+        self.version
+    }
+}
+
 impl From<&mut BytesMut> for OptionResourceRecordCode {
     fn from(value: &mut BytesMut) -> Self {
         Self {
@@ -20,21 +30,21 @@ impl From<&mut BytesMut> for OptionResourceRecordCode {
 
 impl From<OptionResourceRecordCode> for i16 {
     fn from(value: OptionResourceRecordCode) -> Self {
-        todo!()
+        0
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct OptionResourceRecordFlags {
-    dnssec_ok : bool, // https://www.rfc-editor.org/rfc/rfc3225
-    zero : i16
+    dnssec : bool, // 1 bit, https://www.rfc-editor.org/rfc/rfc3225
+    zero : i16 // 15 bits
 }
 
 impl From<&mut BytesMut> for OptionResourceRecordFlags {
     fn from(value: &mut BytesMut) -> Self {
         let flags = value.get_i16();
         OptionResourceRecordFlags {
-            dnssec_ok: ((flags >> 15) & 1) != 0,
+            dnssec: flags & (1 << 15) != 0,
             zero: 0
         }
     }
@@ -43,7 +53,7 @@ impl From<&mut BytesMut> for OptionResourceRecordFlags {
 impl From<OptionResourceRecordFlags> for i16 {
     fn from(value : OptionResourceRecordFlags) -> Self {
         let mut flags : i16 = 0;
-        flags ^= (value.dnssec_ok as i16) << 15;
+        // flags |= (value.dnssec as i16) << 15;
         flags
     }
 }
@@ -56,6 +66,48 @@ pub struct OptionResourceRecord {
     flags: OptionResourceRecordFlags,
     data_length: u16,
     data : OptionResourceData
+}
+
+impl OptionResourceRecord {
+    pub fn udp_payload_size(&self) -> u16 {
+        self.udp_payload_size
+    }
+
+    pub fn code(&self) -> OptionResourceRecordCode {
+        self.code.clone()
+    }
+
+    pub fn flags(&self) -> OptionResourceRecordFlags {
+        self.flags.clone()
+    }
+
+    pub fn data_length(&self) -> u16 {
+        self.data_length
+    }
+
+    pub fn data(&self) -> OptionResourceData {
+        self.data.clone()
+    }
+
+    pub fn set_udp_payload_size(&mut self, udp_payload_size: u16) {
+        self.udp_payload_size = udp_payload_size;
+    }
+
+    pub fn set_code(&mut self, code: OptionResourceRecordCode) {
+        self.code = code;
+    }
+
+    pub fn set_flags(&mut self, flags: OptionResourceRecordFlags) {
+        self.flags = flags;
+    }
+
+    pub fn set_data_length(&mut self, data_length: u16) {
+        self.data_length = data_length;
+    }
+
+    pub fn set_data(&mut self, data: OptionResourceData) {
+        self.data = data;
+    }
 }
 
 impl From<&mut BytesMut> for OptionResourceRecord {
@@ -77,12 +129,15 @@ impl From<&mut BytesMut> for OptionResourceRecord {
 impl From<OptionResourceRecord> for BytesMut {
     fn from(value: OptionResourceRecord) -> Self {
         let mut bytes = BytesMut::new();
-        bytes.put_u16(0); // Root domain
+        bytes.put_u8(0); // Root domain
         bytes.put_u16(Type::Option as u16);
         bytes.put_u16(value.udp_payload_size);
-        bytes.put_i16(value.flags.into());
-        bytes.put_u16(value.data_length);
-        // bytes.put(OptRecordData::from(value.record_data));
+        bytes.put_i16(i16::from(value.code.clone()));
+        bytes.put_i16(i16::from(value.flags.clone()));
+
+        let data = BytesMut::from(value.data());
+        bytes.put_u16(data.len() as u16);
+        bytes.put(data);
         bytes
     }
 }

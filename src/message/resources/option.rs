@@ -1,6 +1,8 @@
+use std::io::Read;
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;
-use faster_hex::hex_string;
+use faster_hex::{hex_string, hex_decode};
+use hyper::body::Body;
 use crate::message::records::{ResourceRecord, ResourceRecordType};
 
 #[derive(Debug, Clone)]
@@ -38,11 +40,30 @@ pub struct OptionCookie {
     server: String,
 }
 
+impl OptionCookie {
+    pub fn client(&self) -> &str {
+        &self.client
+    }
+
+    pub fn server(&self) -> &str {
+        &self.server
+    }
+
+    pub fn set_client(&mut self, client: String) {
+        self.client = client;
+    }
+
+    pub fn set_server(&mut self, server: String) {
+        self.server = server;
+    }
+}
+
 impl From<&mut Vec<u8>> for OptionCookie {
     fn from(value: &mut Vec<u8>) -> Self {
         // Client cookie is a fixed 8 bytes, Server cookie is 8-32 bytes.
         let (client_cookie_bytes, server_cookie_bytes) = value.split_at(8);
         let client = hex_string(client_cookie_bytes);
+
         let mut server = String::new();
         if !server_cookie_bytes.is_empty() {
             server = hex_string(server_cookie_bytes);
@@ -59,6 +80,32 @@ pub struct OptionResourceData {
     code : OptionRecordCode,
     length : u16,
     data : OptionRecordDataOption
+}
+
+impl OptionResourceData {
+    pub fn code(&self) -> OptionRecordCode {
+        self.code.clone()
+    }
+
+    pub fn length(&self) -> u16 {
+        self.length
+    }
+
+    pub fn data(&self) -> OptionRecordDataOption {
+        self.data.clone()
+    }
+
+    pub fn set_code(&mut self, code: OptionRecordCode) {
+        self.code = code;
+    }
+
+    pub fn set_length(&mut self, length: u16) {
+        self.length = length;
+    }
+
+    pub fn set_data(&mut self, data: OptionRecordDataOption) {
+        self.data = data;
+    }
 }
 
 impl From<&mut BytesMut> for OptionResourceData {
@@ -82,13 +129,18 @@ impl From<OptionResourceData> for BytesMut {
     fn from(value: OptionResourceData) -> Self {
         let mut bytes = BytesMut::new();
         bytes.put_u16(value.code as u16);
-        bytes.put_u16(value.length);
         match value.data {
             OptionRecordDataOption::Cookie(cookie) => {
-                bytes.put(cookie.client.as_bytes());
-                if !cookie.server.is_empty() {
-                    bytes.put(cookie.server.as_bytes());
-                }
+                let mut client = vec![0; cookie.client.len() / 2];
+                hex_decode(&cookie.client.as_bytes(), &mut client).expect("Failed to decode hex.");
+
+                let mut server = vec![0; cookie.server.len() / 2];
+                hex_decode(&cookie.server.as_bytes(), &mut server).expect("Failed to decode hex.");
+
+                let length = client.len() + server.len();
+                bytes.put_u16(length as u16);
+                bytes.put(client.as_slice());
+                bytes.put(server.as_slice());
             }
         }
         bytes

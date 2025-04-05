@@ -7,8 +7,7 @@ edition = "2024"
 rustls = "0.23.25"
 tokio = { version = "1.44.1", features = ["full"] }
 tokio-rustls = "0.26.2"
-hyper = "1.6.0"
+hyper = { version = "1.6.0", features = ["full"] }
 bytes = "1.10.1"
-bitfields = "0.12.4"
-derive_builder = "0.20.2"
 faster-hex = "0.10.0"
+derive_builder = "0.20.2"
