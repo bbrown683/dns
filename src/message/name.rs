@@ -1,5 +1,6 @@
 use bytes::{Buf, BufMut, BytesMut};
 
+#[derive(Clone, Debug)]
 pub enum Name {
     Sequence(String),
     Pointer(u16),
@@ -11,10 +12,7 @@ impl From<&mut BytesMut> for Name {
         let next = value.iter().peekable().next().expect("No more available characters");
         let pointer_bitmask: u8 = 0b11000000;
         if (next & pointer_bitmask) == pointer_bitmask {
-            let pointer = value.get_u16();
-            let offset_mask: u16 = 0b0011111111111111;
-            let offset = pointer & offset_mask;
-            Name::Pointer(offset)
+            Name::Pointer(value.get_u16())
         } else {
             let mut length = value.get_u8();
             let mut name = String::new();
@@ -47,7 +45,7 @@ impl From<Name> for BytesMut {
                 bytes.put_u8(0); // Terminate label section
             },
             Name::Pointer(pointer) => {
-                // TODO: Figure out how to use domain name compression with offset pointers.
+                bytes.put_u16(pointer);
             },
             Name::SequencePointer(sequence, pointer) => {
 

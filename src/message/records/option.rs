@@ -73,7 +73,7 @@ pub struct OptionResourceRecord {
     code : OptionResourceRecordCode,
     flags: OptionResourceRecordFlags,
     data_length: u16,
-    data : OptionResourceData
+    data : Option<OptionResourceData>
 }
 
 impl OptionResourceRecord {
@@ -93,7 +93,7 @@ impl OptionResourceRecord {
         self.data_length
     }
 
-    pub fn data(&self) -> OptionResourceData {
+    pub fn data(&self) -> Option<OptionResourceData> {
         self.data.clone()
     }
 
@@ -113,7 +113,7 @@ impl OptionResourceRecord {
         self.data_length = data_length;
     }
 
-    pub fn set_data(&mut self, data: OptionResourceData) {
+    pub fn set_data(&mut self, data: Option<OptionResourceData>) {
         self.data = data;
     }
 }
@@ -124,7 +124,10 @@ impl From<&mut BytesMut> for OptionResourceRecord {
         let code = OptionResourceRecordCode::from(&mut *value);
         let flags = OptionResourceRecordFlags::from(&mut *value);
         let data_length = value.get_u16();
-        let data = OptionResourceData::from(value);
+        let mut data = None;
+        if data_length != 0 {
+            data = Some(OptionResourceData::from(value));
+        }
         OptionResourceRecord {
             udp_payload_size,
             code,
@@ -143,9 +146,15 @@ impl From<OptionResourceRecord> for BytesMut {
         bytes.put_i16(i16::from(value.code.clone()));
         bytes.put_i16(i16::from(value.flags.clone()));
 
-        let data = BytesMut::from(value.data());
-        bytes.put_u16(data.len() as u16);
-        bytes.put(data);
+        let data = value.data();
+        match data {
+            Some(data) => {
+                let data = BytesMut::from(data);
+                bytes.put_u16(data.len() as u16);
+                bytes.put(data);
+            },
+            None => bytes.put_u16(0),
+        }
         bytes
     }
 }

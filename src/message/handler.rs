@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::message::{Message, MessageBuilder};
 use crate::message::classes::Class;
 use crate::message::header::{HeaderFlagsBuilder, HeaderSectionBuilder, QueryKind, ResponseCode};
+use crate::message::name::Name;
 use crate::message::records::{ResourceRecordBuilder, ResourceRecordType};
 use crate::message::resources::ResourceData;
 use crate::message::types::Type;
@@ -38,7 +39,7 @@ impl Handler {
         let questions = &request.questions;
         let answers = vec![ResourceRecordType::ResourceRecord(
             ResourceRecordBuilder::default()
-                .name(String::from("amazon.com"))
+                .name(Name::Sequence(String::from("amazon.com")))
                 .r#type(Type::AddressV4)
                 .class(Class::Internet)
                 .time_to_live(300)

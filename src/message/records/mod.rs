@@ -3,6 +3,7 @@ pub mod option;
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;
 use crate::message::classes::Class;
+use crate::message::name::Name;
 use crate::message::resources::ResourceData;
 use crate::message::traits::{RepeatToBytes, RepeatToVec};
 use crate::message::types::Type;
@@ -10,7 +11,7 @@ use crate::message::records::option::OptionResourceRecord;
 
 #[derive(Builder, Clone, Debug)]
 pub struct ResourceRecord {
-    name: String,
+    name: Name,
     r#type: Type,
     class: Class,
     time_to_live: i32,
@@ -18,7 +19,7 @@ pub struct ResourceRecord {
 }
 
 impl ResourceRecord {
-    fn from(value: &mut BytesMut, name : String, r#type : Type) -> Self {
+    fn from(value: &mut BytesMut, name : Name, r#type : Type) -> Self {
         let class = Class::from(value.get_u16());
         let time_to_live = value.get_i32();
         value.get_u16();
@@ -32,8 +33,8 @@ impl ResourceRecord {
         }
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn name(&self) -> Name {
+        self.name.clone()
     }
 
     pub fn r#type(&self) -> Type {
@@ -52,7 +53,7 @@ impl ResourceRecord {
         &self.resource_data
     }
 
-    pub fn set_name(&mut self, name: String) {
+    pub fn set_name(&mut self, name: Name) {
         self.name = name;
     }
 
@@ -77,13 +78,7 @@ impl From<ResourceRecord> for BytesMut {
     fn from(value: ResourceRecord) -> Self {
         let mut bytes = BytesMut::new();
 
-        // TODO: Figure out how to use domain name compression with offset pointers.
-        let name_pieces : Vec<&str> = value.name.split(".").collect();
-        for name in name_pieces {
-            bytes.put_u8(name.len() as u8);
-            bytes.put(name.as_bytes());
-        }
-        bytes.put_u8(0); // Terminate label section
+        bytes.put(BytesMut::from(value.name));
         bytes.put_u16(value.r#type as u16);
         bytes.put_u16(value.class as u16);
         bytes.put_i32(value.time_to_live);
@@ -103,21 +98,7 @@ pub enum ResourceRecordType {
 
 impl From<&mut BytesMut> for ResourceRecordType {
     fn from(value: &mut BytesMut) -> Self {
-        // TODO: check if its a pointer, and go to that offset.
-
-        let mut name = String::new();
-        let mut length = value.get_u8();
-        while length != 0 {
-            let mut label_bytes = vec![0; length as usize];
-            value.copy_to_slice(&mut label_bytes);
-
-            let mut label = String::new();
-            label.push_str(std::str::from_utf8(&label_bytes).unwrap());
-            name.push_str(&label);
-            name.push('.');
-
-            length = value.get_u8();
-        }
+        let name = Name::from(&mut *value);
         let r#type = Type::from(value.get_u16());
         if matches!(r#type, Type::Option) {
             ResourceRecordType::OptionResourceRecord(OptionResourceRecord::from(&mut *value))

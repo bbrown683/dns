@@ -1,6 +1,6 @@
 mod message;
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::str::FromStr;
 use tokio::io::{self, AsyncWriteExt as _};
 use tokio::net::UdpSocket;
@@ -10,15 +10,16 @@ use crate::message::handler::Handler;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
-    let socket = UdpSocket::bind(("0.0.0.0", 5335)).await?;
+    let addr = &SocketAddr::new(IpAddr::from(Ipv6Addr::UNSPECIFIED), 5335);
+    let socket = UdpSocket::bind(addr).await?;
     let upstream = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)), 53);
 
     loop {
         let (request, from) = get_message(&socket).await?;
         send_message(&socket, request.clone(), upstream).await?;
-        // let (response, _) = get_message(&socket).await?;
-        // let response = Handler::get_response(&request);
-        // send_message(&socket, response.clone(), from).await?;
+        let (response, _) = get_message(&socket).await?;
+        //let response = Handler::get_response(&request);
+        send_message(&socket, response.clone(), from).await?;
     }
 }
 
