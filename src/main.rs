@@ -1,27 +1,42 @@
 mod message;
 
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::str::FromStr;
 use tokio::io::{self, AsyncWriteExt as _};
 use tokio::net::UdpSocket;
-use bytes::{Buf, BytesMut};
-
+use bytes::{Buf, BufMut, BytesMut};
 use crate::message::Message;
 use crate::message::handler::Handler;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
-    let sock = UdpSocket::bind(("127.0.0.1", 5335)).await?;
+    let socket = UdpSocket::bind(("0.0.0.0", 5335)).await?;
+    let upstream = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)), 53);
 
     loop {
-        let mut request_buf = BytesMut::zeroed(512);
-        let (bytes, from) = sock.recv_from(&mut request_buf).await?;
-        let request = Message::from(&mut request_buf);
-        println!("Received {} bytes from {}", bytes, from);
-        println!("Header: {:?}", request.header());
-        println!("Questions {:?}", request.questions());
-        println!("Answers: {:?}", request.answers());
-        println!("Additional Records: {:?}", request.additional_records());
-        let response = Handler::get_response(&request);
-        let response_buf = BytesMut::from(response);
-        sock.send_to(&response_buf[..], from).await?;
+        let (request, from) = get_message(&socket).await?;
+        send_message(&socket, request.clone(), upstream).await?;
+        // let (response, _) = get_message(&socket).await?;
+        // let response = Handler::get_response(&request);
+        // send_message(&socket, response.clone(), from).await?;
     }
+}
+
+async fn get_message(socket : &UdpSocket) -> io::Result<(Message, SocketAddr)> {
+    let mut buffer = BytesMut::zeroed(512);
+    let (bytes, from) = socket.recv_from(&mut buffer).await?;
+    let message = Message::from(&mut buffer);
+    println!("Received {} bytes from {}", bytes, from);
+    println!("Message Header: {:?}", message.header());
+    println!("Message Questions {:?}", message.questions());
+    println!("Message Answers: {:?}", message.answers());
+    println!("Message Additional Records: {:?}", message.additional_records());
+    Ok((message, from))
+}
+
+async fn send_message(socket : &UdpSocket, message : Message, address : SocketAddr) -> io::Result<()> {
+    let buffer = BytesMut::from(message);
+    let bytes = socket.send_to(&buffer[..], address).await?;
+    println!("Sent {} bytes to {}", bytes, address);
+    Ok(())
 }

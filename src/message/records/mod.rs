@@ -103,6 +103,8 @@ pub enum ResourceRecordType {
 
 impl From<&mut BytesMut> for ResourceRecordType {
     fn from(value: &mut BytesMut) -> Self {
+        // TODO: check if its a pointer, and go to that offset.
+
         let mut name = String::new();
         let mut length = value.get_u8();
         while length != 0 {

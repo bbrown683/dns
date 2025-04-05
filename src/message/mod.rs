@@ -10,6 +10,7 @@ pub mod resources;
 pub mod types;
 pub mod traits;
 pub mod handler;
+mod name;
 
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;
