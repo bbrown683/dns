@@ -1,12 +1,9 @@
 use std::net::Ipv4Addr;
 use std::str::FromStr;
-use std::time::Duration;
 use crate::message::{Message, MessageBuilder};
 use crate::message::classes::Class;
 use crate::message::header::{HeaderFlagsBuilder, HeaderSectionBuilder, QueryKind, ResponseCode};
-use crate::message::records::option::OptionResourceRecordCode;
 use crate::message::records::{ResourceRecordBuilder, ResourceRecordType};
-use crate::message::resources::option::{OptionRecordDataOption, OptionResourceData};
 use crate::message::resources::ResourceData;
 use crate::message::types::Type;
 
@@ -45,7 +42,6 @@ impl Handler {
                 .r#type(Type::AddressV4)
                 .class(Class::Internet)
                 .time_to_live(300)
-                .resource_data_bytes(4)
                 .resource_data(ResourceData::AddressV4(Ipv4Addr::from_str("142.251.15.113").expect("Failed to parse IP Address")))
                 .build().unwrap()
         )];

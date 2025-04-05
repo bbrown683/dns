@@ -61,7 +61,7 @@ impl From<&mut BytesMut> for OptionResourceRecordFlags {
 impl From<OptionResourceRecordFlags> for i16 {
     fn from(value : OptionResourceRecordFlags) -> Self {
         let mut flags : i16 = 0;
-        // flags |= (value.dnssec as i16) << 15;
+        flags |= (value.dnssec as i16) << 15;
         flags
     }
 }

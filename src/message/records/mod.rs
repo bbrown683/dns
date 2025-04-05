@@ -1,6 +1,5 @@
 pub mod option;
 
-use std::time::Duration;
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;
 use crate::message::classes::Class;
@@ -15,7 +14,6 @@ pub struct ResourceRecord {
     r#type: Type,
     class: Class,
     time_to_live: i32,
-    resource_data_bytes: u16,
     resource_data: ResourceData
 }
 
@@ -23,14 +21,13 @@ impl ResourceRecord {
     fn from(value: &mut BytesMut, name : String, r#type : Type) -> Self {
         let class = Class::from(value.get_u16());
         let time_to_live = value.get_i32();
-        let resource_data_bytes = value.get_u16();
+        value.get_u16();
         let resource_data = ResourceData::from(value, &r#type);
         ResourceRecord {
             name,
             r#type,
             class,
             time_to_live,
-            resource_data_bytes,
             resource_data,
         }
     }
@@ -49,10 +46,6 @@ impl ResourceRecord {
 
     pub fn time_to_live(&self) -> i32 {
         self.time_to_live
-    }
-
-    pub fn resource_data_bytes(&self) -> u16 {
-        self.resource_data_bytes
     }
 
     pub fn resource_data(&self) -> &ResourceData {
@@ -75,10 +68,6 @@ impl ResourceRecord {
         self.time_to_live = time_to_live;
     }
 
-    pub fn set_resource_data_bytes(&mut self, resource_data_bytes: u16) {
-        self.resource_data_bytes = resource_data_bytes;
-    }
-
     pub fn set_resource_data(&mut self, resource_data: ResourceData) {
         self.resource_data = resource_data;
     }
@@ -86,8 +75,9 @@ impl ResourceRecord {
 
 impl From<ResourceRecord> for BytesMut {
     fn from(value: ResourceRecord) -> Self {
-        // TODO: Figure out how to use compression using domain name compression with pointers.
         let mut bytes = BytesMut::new();
+
+        // TODO: Figure out how to use domain name compression with offset pointers.
         let name_pieces : Vec<&str> = value.name.split(".").collect();
         for name in name_pieces {
             bytes.put_u8(name.len() as u8);

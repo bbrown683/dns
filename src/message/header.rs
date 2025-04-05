@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;

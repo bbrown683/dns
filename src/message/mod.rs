@@ -17,13 +17,12 @@ use header::HeaderSection;
 use question::QuestionSection;
 use records::ResourceRecordType;
 use traits::RepeatToVec;
-use std::default::Default;
-use crate::message::header::{HeaderFlags, HeaderSectionBuilder};
 use crate::message::traits::RepeatToBytes;
 
 // https://www.rfc-editor.org/rfc/rfc1035 DNS Specification
 // https://www.rfc-editor.org/rfc/rfc8499 DNS Terminology
 // https://www.rfc-editor.org/rfc/rfc9499.html DNS Terminology
+// https://www.rfc-editor.org/rfc/rfc5011.html DNS Trust Anchor Updates
 #[derive(Builder, Clone, Debug)]
 pub struct Message {
     header: HeaderSection,

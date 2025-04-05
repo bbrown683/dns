@@ -1,9 +1,6 @@
-use std::io::Read;
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;
 use faster_hex::{hex_string, hex_decode};
-use hyper::body::Body;
-use crate::message::records::{ResourceRecord, ResourceRecordType};
 
 #[derive(Debug, Clone)]
 pub enum OptionRecordCode {
@@ -78,7 +75,6 @@ impl From<&mut Vec<u8>> for OptionCookie {
 #[derive(Builder, Clone, Debug)]
 pub struct OptionResourceData {
     code : OptionRecordCode,
-    length : u16,
     data : OptionRecordDataOption
 }
 
@@ -87,9 +83,6 @@ impl OptionResourceData {
         self.code.clone()
     }
 
-    pub fn length(&self) -> u16 {
-        self.length
-    }
 
     pub fn data(&self) -> OptionRecordDataOption {
         self.data.clone()
@@ -97,10 +90,6 @@ impl OptionResourceData {
 
     pub fn set_code(&mut self, code: OptionRecordCode) {
         self.code = code;
-    }
-
-    pub fn set_length(&mut self, length: u16) {
-        self.length = length;
     }
 
     pub fn set_data(&mut self, data: OptionRecordDataOption) {
@@ -119,7 +108,6 @@ impl From<&mut BytesMut> for OptionResourceData {
 
         OptionResourceData {
             code,
-            length,
             data,
         }
     }
