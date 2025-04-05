@@ -16,9 +16,10 @@ use derive_builder::Builder;
 use header::HeaderSection;
 use question::QuestionSection;
 use records::ResourceRecordType;
-use traits::RepeatFrom;
+use traits::RepeatToVec;
 use std::default::Default;
 use crate::message::header::{HeaderFlags, HeaderSectionBuilder};
+use crate::message::traits::RepeatToBytes;
 
 // https://www.rfc-editor.org/rfc/rfc1035 DNS Specification
 // https://www.rfc-editor.org/rfc/rfc8499 DNS Terminology
@@ -52,15 +53,35 @@ impl Message {
     pub fn additional_records(&self) -> Vec<ResourceRecordType> {
         self.additional_records.clone()
     }
+
+    pub fn set_header(&mut self, header: HeaderSection) {
+        self.header = header;
+    }
+
+    pub fn set_questions(&mut self, questions: Vec<QuestionSection>) {
+        self.questions = questions;
+    }
+
+    pub fn set_answers(&mut self, answers: Vec<ResourceRecordType>) {
+        self.answers = answers;
+    }
+
+    pub fn set_authorities(&mut self, authorities: Vec<ResourceRecordType>) {
+        self.authorities = authorities;
+    }
+
+    pub fn set_additional_records(&mut self, additional_records: Vec<ResourceRecordType>) {
+        self.additional_records = additional_records;
+    }
 }
 
 impl From<&mut BytesMut> for Message {
     fn from(value: &mut BytesMut) -> Self {
         let header = HeaderSection::from(&mut *value);
-        let question = QuestionSection::repeat_from(header.get_question_count(), &mut *value);
-        let answer = ResourceRecordType::repeat_from(header.get_answer_count(), &mut *value);
-        let authority = ResourceRecordType::repeat_from(header.get_authority_count(), &mut *value);
-        let additional = ResourceRecordType::repeat_from(header.get_additional_record_count(), &mut *value);
+        let question = QuestionSection::repeat_to_vec(header.question_count(), &mut *value);
+        let answer = ResourceRecordType::repeat_to_vec(header.answer_count(), &mut *value);
+        let authority = ResourceRecordType::repeat_to_vec(header.authority_count(), &mut *value);
+        let additional = ResourceRecordType::repeat_to_vec(header.additional_record_count(), &mut *value);
         Self {
             header,
             questions: question,
@@ -75,26 +96,10 @@ impl From<Message> for BytesMut {
     fn from(value: Message) -> Self {
         let mut bytes = BytesMut::new();
         bytes.put(BytesMut::from(value.header));
-
-        let questions = value.questions;
-        for question in questions {
-            bytes.put(BytesMut::from(question));
-        }
-
-        let answers = value.answers;
-        for answer in answers {
-            bytes.put(BytesMut::from(answer));
-        }
-
-        let authorities = value.authorities;
-        for authority in authorities {
-            bytes.put(BytesMut::from(authority))
-        }
-
-        let additional_records = value.additional_records;
-        for additional_record in additional_records {
-            bytes.put(BytesMut::from(additional_record));
-        }
+        bytes.put(BytesMut::repeat_to_bytes(value.questions));
+        bytes.put(BytesMut::repeat_to_bytes(value.answers));
+        bytes.put(BytesMut::repeat_to_bytes(value.authorities));
+        bytes.put(BytesMut::repeat_to_bytes(value.additional_records));
         bytes
     }
 }

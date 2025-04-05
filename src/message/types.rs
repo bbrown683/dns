@@ -1,6 +1,6 @@
 #[derive(Debug, Copy, Clone)]
 pub enum Type {
-    HostAddressV4 = 1,
+    AddressV4 = 1,
     NameServer = 2,
     MailDestination = 3,
     MailForwarder = 4,
@@ -16,7 +16,7 @@ pub enum Type {
     MailboxInfo = 14,
     MailboxExchange = 15,
     Text = 16,
-    HostAddressV6 = 28,
+    AddressV6 = 28,
     Option = 41,
     HTTPS = 65,
 }
@@ -24,7 +24,7 @@ pub enum Type {
 impl From<u16> for Type {
     fn from(value: u16) -> Self {
         match value {
-            1 => Type::HostAddressV4,
+            1 => Type::AddressV4,
             2 => Type::NameServer,
             3 => Type::MailDestination,
             4 => Type::MailForwarder,
@@ -40,7 +40,7 @@ impl From<u16> for Type {
             14 => Type::MailboxInfo,
             15 => Type::MailboxExchange,
             16 => Type::Text,
-            28 => Type::HostAddressV6,
+            28 => Type::AddressV6,
             41 => Type::Option,
             65 => Type::HTTPS,
             _ => panic!("Unknown DNS Type {:?}", value),
@@ -51,7 +51,7 @@ impl From<u16> for Type {
 impl From<Type> for &str {
     fn from(value: Type) -> Self {
         match value {
-            Type::HostAddressV4 => "A",
+            Type::AddressV4 => "A",
             Type::NameServer => "NS",
             Type::MailDestination => "MD",
             Type::MailForwarder => "MF",
@@ -67,7 +67,7 @@ impl From<Type> for &str {
             Type::MailboxInfo => "MINFO",
             Type::MailboxExchange => "MX",
             Type::Text => "TXT",
-            Type::HostAddressV6 => "AAAA",
+            Type::AddressV6 => "AAAA",
             Type::Option => "OPT",
             Type::HTTPS => "HTTPS",
         }

@@ -1,7 +1,7 @@
 use bytes::{Buf, BufMut, BytesMut};
 use derive_builder::Builder;
 use crate::message::classes::QueryClass;
-use crate::message::traits::RepeatFrom;
+use crate::message::traits::{RepeatToBytes, RepeatToVec};
 use crate::message::types::QueryType;
 
 #[derive(Builder, Clone, Debug)]
@@ -9,6 +9,32 @@ pub struct QuestionSection {
     name: Vec<String>,
     r#type: QueryType,
     class: QueryClass,
+}
+
+impl QuestionSection {
+    pub fn name(&self) -> Vec<String> {
+        self.name.clone()
+    }
+
+    pub fn r#type(&self) -> QueryType {
+        self.r#type
+    }
+
+    pub fn class(&self) -> QueryClass {
+        self.class.clone()
+    }
+
+    pub fn set_name(&mut self, name: Vec<String>) {
+        self.name = name;
+    }
+
+    pub fn set_type(&mut self, r#type : QueryType) {
+        self.r#type = r#type;
+    }
+
+    pub fn set_class(&mut self, class: QueryClass) {
+        self.class = class;
+    }
 }
 
 impl From<&mut BytesMut> for QuestionSection {
@@ -35,13 +61,23 @@ impl From<&mut BytesMut> for QuestionSection {
     }
 }
 
-impl RepeatFrom<u16, &mut BytesMut> for QuestionSection {
-    fn repeat_from(repeat : u16, value : &mut BytesMut) -> Vec<Self> {
+impl RepeatToVec<u16, &mut BytesMut> for QuestionSection {
+    fn repeat_to_vec(repeat : u16, value : &mut BytesMut) -> Vec<Self> {
         let mut vec = Vec::with_capacity(repeat as usize);
         for _ in 0..repeat {
             vec.push(QuestionSection::from(&mut *value));
         }
         vec
+    }
+}
+
+impl RepeatToBytes<QuestionSection> for BytesMut {
+    fn repeat_to_bytes(value : Vec<QuestionSection>) -> BytesMut {
+        let mut bytes = BytesMut::new();
+        for question in value {
+            bytes.put(BytesMut::from(question));
+        }
+        bytes
     }
 }
 

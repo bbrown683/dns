@@ -17,6 +17,14 @@ impl OptionResourceRecordCode {
     pub fn version(&self) -> i8 {
         self.version
     }
+
+    pub fn set_upper_byte(&mut self, upper_byte: i8) {
+        self.upper_byte = upper_byte;
+    }
+
+    pub fn set_version(&mut self, version: i8) {
+        self.version = version;
+    }
 }
 
 impl From<&mut BytesMut> for OptionResourceRecordCode {

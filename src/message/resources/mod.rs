@@ -33,7 +33,7 @@ pub enum ResourceData {
     Pointer(DomainName),
     StartOfAuthority(StartOfAuthorityResourceData),
     Text(String),
-    RecordData(Ipv4Addr),
+    AddressV4(Ipv4Addr),
     WellKnownService(WellKnownServiceResourceData),
     Option(OptionResourceData)
 }
@@ -46,5 +46,16 @@ impl ResourceData {
             Type::Option => ResourceData::Option(OptionResourceData::from(bytes)),
             _ => panic!("Unknown DNS Resource Data"),
         }
+    }
+}
+
+impl From<ResourceData> for BytesMut {
+    fn from(value: ResourceData) -> Self {
+        let mut bytes = BytesMut::new();
+        match value {
+            ResourceData::AddressV4(address) => bytes.put_u32(address.to_bits()),
+            _ => ()
+        }
+        bytes
     }
 }

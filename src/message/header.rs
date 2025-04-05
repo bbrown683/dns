@@ -99,15 +99,77 @@ pub struct HeaderFlags {
 }
 
 impl HeaderFlags {
-    pub fn is_query_response(&self) -> bool { self.query_response }
-    pub fn get_query_kind(&self) -> QueryKind { self.query_kind.clone() }
-    pub fn is_authoritative_answer(&self) -> bool { self.authoritative_answer }
-    pub fn is_truncated(&self) -> bool { self.truncated }
-    pub fn is_recursion_desired(&self) -> bool { self.recursion_desired }
-    pub fn is_recursion_available(&self) -> bool { self.recursion_available }
-    pub fn is_authenticated_data(&self) -> bool { self.authenticated_data }
-    pub fn is_non_authenticated_data(&self) -> bool { self.non_authenticated_data }
-    pub fn get_response_code(&self) -> ResponseCode { self.response_code.clone() }
+    pub fn query_response(&self) -> bool {
+        self.query_response
+    }
+
+    pub fn query_kind(&self) -> QueryKind {
+        self.query_kind.clone()
+    }
+
+    pub fn authoritative_answer(&self) -> bool {
+        self.authoritative_answer
+    }
+
+    pub fn truncated(&self) -> bool {
+        self.truncated
+    }
+
+    pub fn recursion_desired(&self) -> bool {
+        self.recursion_desired
+    }
+
+    pub fn recursion_available(&self) -> bool {
+        self.recursion_available
+    }
+
+    pub fn authenticated_data(&self) -> bool {
+        self.authenticated_data
+    }
+
+    pub fn non_authenticated_data(&self) -> bool {
+        self.non_authenticated_data
+    }
+
+    pub fn response_code(&self) -> ResponseCode {
+        self.response_code.clone()
+    }
+
+    pub fn set_query_response(&mut self, query_response: bool) {
+        self.query_response = query_response;
+    }
+
+    pub fn set_query_kind(&mut self, query_kind: QueryKind) {
+        self.query_kind = query_kind;
+    }
+
+    pub fn set_authoritative_answer(&mut self, authoritative_answer: bool) {
+        self.authoritative_answer = authoritative_answer;
+    }
+
+    pub fn set_truncated(&mut self, truncated: bool) {
+        self.truncated = truncated;
+    }
+
+    pub fn set_recursion_desired(&mut self, recursion_desired: bool) {
+        self.recursion_desired = recursion_desired;
+    }
+
+    pub fn set_recursion_available(&mut self, recursion_available: bool) {
+        self.recursion_available = recursion_available;
+    }
+
+    pub fn set_authenticated_data(&mut self, authenticated_data: bool) {
+        self.authenticated_data = authenticated_data;
+    }
+
+    pub fn set_non_authenticated_data(&mut self, non_authenticated_data: bool) {
+        self.non_authenticated_data = non_authenticated_data;
+    }
+
+    pub fn set_response_code(&mut self, response_code: ResponseCode) {
+        self.response_code = response_code;
+    }
 }
 
 impl From<u16> for HeaderFlags {
@@ -153,12 +215,53 @@ pub struct HeaderSection {
 }
 
 impl HeaderSection {
-    pub fn get_id(&self) -> u16 { self.id }
-    pub fn get_flags(&self) -> HeaderFlags { self.flags.clone() }
-    pub fn get_question_count(&self) -> u16 { self.question_count }
-    pub fn get_answer_count(&self) -> u16 { self.answer_count }
-    pub fn get_authority_count(&self) -> u16 { self.authority_count }
-    pub fn get_additional_record_count(&self) -> u16 { self.additional_record_count }
+    pub fn id(&self) -> u16 {
+        self.id
+    }
+
+    pub fn flags(&self) -> HeaderFlags {
+        self.flags.clone()
+    }
+
+    pub fn question_count(&self) -> u16 {
+        self.question_count
+    }
+
+    pub fn answer_count(&self) -> u16 {
+        self.answer_count
+    }
+
+    pub fn authority_count(&self) -> u16 {
+        self.authority_count
+    }
+
+    pub fn additional_record_count(&self) -> u16 {
+        self.additional_record_count
+    }
+
+    pub fn set_id(&mut self, id: u16) {
+        self.id = id;
+    }
+
+    pub fn set_flags(&mut self, flags: HeaderFlags) {
+        self.flags = flags;
+    }
+
+    pub fn set_question_count(&mut self, question_count: u16) {
+        self.question_count = question_count;
+    }
+
+    pub fn set_answer_count(&mut self, answer_count: u16) {
+        self.answer_count = answer_count;
+    }
+
+    pub fn set_authority_count(&mut self, authority_count: u16) {
+        self.authority_count = authority_count;
+    }
+
+    pub fn set_additional_record_count(&mut self, additional_record_count: u16) {
+        self.additional_record_count = additional_record_count;
+    }
 }
 
 impl From<&mut BytesMut> for HeaderSection {
