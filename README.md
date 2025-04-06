@@ -1,5 +1,5 @@
 # DNS
-
+Personal project of implementing a DNS server. 
 
 ### Desired Features Matrix
 | Feature            | Supported |
@@ -8,7 +8,7 @@
 | **DNS over HTTPS** |     ❌     |
 | **DNS over TLS**   |     ❌     |
 | **DNS over QUIC**  |     ❌     |
-| **EDNS**           |     ❌     |
+| **EDNS**           |     ✅     |
 | **DNSSEC**         |     ❌     |
 | **DNSCrypt**       |     ❌     |
 | **DNS64**          |     ❌     |
