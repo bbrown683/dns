@@ -1,11 +1,11 @@
 use derive_builder::Builder;
 use std::time::Duration;
-use crate::message::resources::DomainName;
+use crate::message::name::Name;
 
-#[derive(Builder, Clone, Debug, Default)]
+#[derive(Builder, Clone, Debug)]
 pub struct StartOfAuthorityResourceData {
-    primary_name_server: DomainName,
-    responsible_authority_mailbox: DomainName,
+    primary_name_server: Name,
+    responsible_authority_mailbox: Name,
     serial_number: u32,
     refresh_interval: Duration,
     retry_interval: Duration,
