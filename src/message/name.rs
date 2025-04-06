@@ -52,7 +52,6 @@ impl From<Name> for BytesMut {
                     bytes.put_u8(name.len() as u8);
                     bytes.put(name.as_bytes());
                 }
-                bytes.put_u8(0); // Terminate label section
             },
             Name::Pointer(pointer) => {
                 bytes.put_u16(pointer);
